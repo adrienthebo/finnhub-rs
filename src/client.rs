@@ -12,6 +12,8 @@ pub struct Client {
     baseurl: Url,
 }
 
+pub type ApiResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
+
 impl Client {
     const BASEURL: &'static str = "https://finnhub.io/api/v1/";
 
@@ -22,38 +24,38 @@ impl Client {
         }
     }
 
-    pub async fn exchanges(&self) -> Result<Vec<crate::Exchange>, Box<dyn std::error::Error + Send + Sync>> {
-        let url = self.url_for_path("/stock/exchange", None);
-        let exchanges: Vec<crate::Exchange> = reqwest::get(url).await?.json().await?;
-        Ok(exchanges)
+    pub async fn exchanges(&self) -> ApiResult<Vec<crate::Exchange>> {
+        self.get::<Vec<crate::Exchange>>(self.url_for_path("/stock/exchange", None))
+            .await
     }
 
-    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> Result<Vec<crate::StockDesc>, Box<dyn std::error::Error + Send + Sync>> {
-        let params = vec![("exchange", exchange.0.as_ref())];
-        let url = self.url_for_path("/stock/symbol", Some(params));
-        let exchanges: Vec<crate::StockDesc> = reqwest::get(url).await?.json().await?;
-        Ok(exchanges)
+    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> ApiResult<Vec<crate::StockDesc>> {
+        self.get::<Vec<crate::StockDesc>>(self.url_for_path(
+            "/stock/symbol",
+            Some(vec![("exchange", exchange.0.as_ref())]),
+        ))
+        .await
     }
 
-    pub async fn quote(&self, symbol: crate::Symbol) -> Result<crate::Quote, Box<dyn std::error::Error + Send + Sync>> {
-        let params = vec![("symbol", symbol.0.as_ref())];
-        let url = self.url_for_path("/quote", Some(params));
-        let quote: crate::Quote = reqwest::get(url).await?.json().await?;
-        Ok(quote)
+    pub async fn quote(&self, symbol: crate::Symbol) -> ApiResult<crate::Quote> {
+        self.get::<crate::Quote>(
+            self.url_for_path("/quote", Some(vec![("symbol", symbol.0.as_ref())])),
+        )
+        .await
     }
 
-    pub async fn news_sentiment(&self, symbol: crate::Symbol) -> Result<crate::NewsSentiment, Box<dyn std::error::Error + Send + Sync>> {
-        let params = vec![("symbol", symbol.0.as_ref())];
-        let url = self.url_for_path("/news-sentiment", Some(params));
-        let ns: crate::NewsSentiment = reqwest::get(url).await?.json().await?;
-        Ok(ns)
+    pub async fn news_sentiment(&self, symbol: crate::Symbol) -> ApiResult<crate::NewsSentiment> {
+        self.get::<crate::NewsSentiment>(
+            self.url_for_path("/news-sentiment", Some(vec![("symbol", symbol.0.as_ref())])),
+        )
+        .await
     }
 
-    pub async fn peers(&self, symbol: crate::Symbol) -> Result<Vec<crate::Symbol>, Box<dyn std::error::Error + Send + Sync>> {
-        let params = vec![("symbol", symbol.0.as_ref())];
-        let url = self.url_for_path("/stock/peers", Some(params));
-        let peers: Vec<crate::Symbol> = reqwest::get(url).await?.json().await?;
-        Ok(peers)
+    pub async fn peers(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Symbol>> {
+        self.get::<Vec<crate::Symbol>>(
+            self.url_for_path("/stock/peers", Some(vec![("symbol", symbol.0.as_ref())])),
+        )
+        .await
     }
 
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
@@ -72,5 +74,13 @@ impl Client {
             }
         }
         url
+    }
+
+    async fn get<T>(&self, url: Url) -> Result<T, Box<dyn std::error::Error + Send + Sync>>
+    where
+        for<'de> T: serde::Deserialize<'de>,
+    {
+        let response: T = reqwest::get(url).await?.json().await?;
+        Ok(response)
     }
 }
