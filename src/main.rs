@@ -1,4 +1,3 @@
-extern crate hyper;
 extern crate tokio;
 extern crate clap;
 
@@ -22,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = finnhub::Client::with_token(token);
 
     match matches.subcommand_name() {
-        Some("exchanges") => client.exchanges().await?,
+        Some("exchanges") => println!("{:#?}", client.exchanges().await?),
         //None => println!("No subcommand was used"),
         _ => println!("Some other subcommand was used"),
     }

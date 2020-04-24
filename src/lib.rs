@@ -1,5 +1,6 @@
-extern crate hyper;
-extern crate hyper_tls;
+extern crate reqwest;
+extern crate serde;
+extern crate serde_json;
 extern crate http;
 extern crate url;
 
@@ -7,7 +8,9 @@ mod client;
 
 pub use client::Client;
 
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Exchange {
     /// The stock exchange (eg "US", "VN")
     code: String,
