@@ -1,3 +1,7 @@
+extern crate hyper;
+
+pub mod client;
+
 #[cfg(test)]
 mod tests {
     #[test]
