@@ -15,11 +15,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             .long("token")
             .value_name("STRING")
             .help("Set the Finnhub API token"))
+        .subcommand(SubCommand::with_name("exchanges"))
         .get_matches();
 
-    let token = matches.value_of("token").expect("Finnhub API token").to_string();
-    let client = finnhub::client::Client { token };
-    println!("client={:?}", client);
+    let token = matches.value_of("token").expect("Finnhub API token");
+    let client = finnhub::Client::with_token(token);
+
+    match matches.subcommand_name() {
+        Some("exchanges") => client.exchanges().await?,
+        //None => println!("No subcommand was used"),
+        _ => println!("Some other subcommand was used"),
+    }
 
     Ok(())
 }

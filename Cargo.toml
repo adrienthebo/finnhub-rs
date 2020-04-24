@@ -8,5 +8,8 @@ edition = "2018"
 
 [dependencies]
 hyper = "0.13"
+hyper-tls = "0.4"
 tokio = { version = "0.2", features = ["full"] }
 clap = "2"
+http = "0.1"
+url = "2"
