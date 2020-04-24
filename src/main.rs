@@ -10,6 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .version("0.1.0")
         .author("Adrien Thebo <adrien@lagrange-automation.io")
         .about("Interact with the Finnhub API")
+        .after_help("The market can stay irrational longer than you can remain solvent.")
         .arg(
             Arg::with_name("token")
                 .env("FINNHUB_TOKEN")
