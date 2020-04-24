@@ -49,6 +49,13 @@ impl Client {
         Ok(ns)
     }
 
+    pub async fn peers(&self, symbol: crate::Symbol) -> Result<Vec<crate::Symbol>, Box<dyn std::error::Error + Send + Sync>> {
+        let params = vec![("symbol", symbol.0.as_ref())];
+        let url = self.url_for_path("/stock/peers", Some(params));
+        let peers: Vec<crate::Symbol> = reqwest::get(url).await?.json().await?;
+        Ok(peers)
+    }
+
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {

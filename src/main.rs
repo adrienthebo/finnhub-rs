@@ -1,5 +1,6 @@
 extern crate clap;
 extern crate tokio;
+extern crate serde_json;
 
 use clap::{App, Arg, SubCommand};
 
@@ -41,6 +42,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .help("The stock symbol to quote"),
             ),
         )
+        .subcommand(
+            SubCommand::with_name("peers").arg(
+                Arg::with_name("symbol")
+                    .index(1)
+                    .required(true)
+                    .help("The stock symbol to quote"),
+            ),
+        )
         .get_matches();
 
     let token = matches.value_of("token").expect("Finnhub API token");
@@ -73,7 +82,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{:#?}", client.news_sentiment(stock_code).await?);
+            println!("{}", serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?).unwrap());
+        }
+        ("peers", Some(matches)) => {
+            let stock_code = finnhub::Symbol(
+                matches
+                    .value_of("symbol")
+                    .expect("Missing stock code")
+                    .to_string(),
+            );
+            println!("{}", serde_json::to_string_pretty(&client.peers(stock_code).await?).unwrap());
         }
         //None => println!("No subcommand was used"),
         _ => println!("Some other subcommand was used"),

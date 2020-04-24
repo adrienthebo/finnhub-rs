@@ -41,6 +41,7 @@ pub struct StockDesc {
     symbol: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Symbol(pub String);
 
 /// Get quote data. Constant polling is not recommended. Use websocket if you need real-time
