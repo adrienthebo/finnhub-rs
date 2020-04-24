@@ -23,20 +23,32 @@ impl Client {
     }
 
     pub async fn exchanges(&self) -> Result<Vec<crate::Exchange>, Box<dyn std::error::Error + Send + Sync>> {
-        let url = self.url_for_path("/stock/exchange");
+        let url = self.url_for_path("/stock/exchange", None);
         let exchanges: Vec<crate::Exchange> = reqwest::get(url).await?.json().await?;
         Ok(exchanges)
     }
 
-    fn url_for_path(&self, path: &str) -> Url {
+    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> Result<Vec<crate::StockSymbol>, Box<dyn std::error::Error + Send + Sync>> {
+        let params = vec![("exchange", exchange.0.as_ref())];
+        let url = self.url_for_path("/stock/symbol", Some(params));
+        let exchanges: Vec<crate::StockSymbol> = reqwest::get(url).await?.json().await?;
+        Ok(exchanges)
+    }
+
+    fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
             let mut segments = url.path_segments_mut().unwrap();
             segments.push(path);
         }
         {
-            let mut pairs = url.query_pairs_mut();
-            pairs.append_pair("token", &self.token);
+            let mut query_pairs = url.query_pairs_mut();
+            query_pairs.append_pair("token", &self.token);
+            if let Some(pairs) = params {
+                for pair in pairs {
+                    query_pairs.append_pair(pair.0, pair.1);
+                }
+            }
         }
         url
     }
