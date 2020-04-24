@@ -69,3 +69,51 @@ pub struct Quote {
     #[serde(rename = "pc")]
     previous_close: f32,
 }
+
+/// Get company's news sentiment and statistics. This endpoint is only available for US companies.
+///
+/// Definition: https://finnhub.io/docs/api#news-sentiment
+#[derive(Debug, Deserialize, Serialize)]
+pub struct NewsSentiment {
+
+    /// Statistics of company news in the past week.
+    pub buzz: Option<Buzz>,
+
+    /// News score.
+    #[serde(rename = "companyNewsScore:")]
+    pub company_news_score: Option<f32>,
+
+    /// Sector average bullish percent.
+    #[serde(rename = "sectorAverageBullishPercent")]
+    pub sector_average_bullish_percent: Option<f32>,
+
+    /// Sector average score.
+    #[serde(rename = "sectorAverageNewsScore")]
+    pub sector_average_news_score: Option<f32>,
+
+    /// Sentiment
+    pub sentiment: Option<Sentiment>,
+
+    /// TODO: convert this to a crate::Symbol
+    symbol: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Buzz {
+    #[serde(rename = "articlesInLastWeek")]
+    articles_in_last_week: Option<f32>,
+
+    buzz: Option<f32>,
+
+    #[serde(rename = "weeklyAverage")]
+    weekly_average: Option<f32>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Sentiment {
+    #[serde(rename = "bearishPercent")]
+    bearish_percent: Option<f32>,
+
+    #[serde(rename = "bullishPercent")]
+    bullish_percent: Option<f32>,
+}

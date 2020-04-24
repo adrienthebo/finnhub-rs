@@ -33,6 +33,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .help("The stock symbol to quote"),
             ),
         )
+        .subcommand(
+            SubCommand::with_name("news-sentiment").arg(
+                Arg::with_name("symbol")
+                    .index(1)
+                    .required(true)
+                    .help("The stock symbol to quote"),
+            ),
+        )
         .get_matches();
 
     let token = matches.value_of("token").expect("Finnhub API token");
@@ -57,6 +65,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .to_string(),
             );
             println!("{:#?}", client.quote(stock_code).await?);
+        }
+        ("news-sentiment", Some(matches)) => {
+            let stock_code = finnhub::Symbol(
+                matches
+                    .value_of("symbol")
+                    .expect("Missing stock code")
+                    .to_string(),
+            );
+            println!("{:#?}", client.news_sentiment(stock_code).await?);
         }
         //None => println!("No subcommand was used"),
         _ => println!("Some other subcommand was used"),

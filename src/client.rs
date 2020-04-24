@@ -42,6 +42,13 @@ impl Client {
         Ok(quote)
     }
 
+    pub async fn news_sentiment(&self, symbol: crate::Symbol) -> Result<crate::NewsSentiment, Box<dyn std::error::Error + Send + Sync>> {
+        let params = vec![("symbol", symbol.0.as_ref())];
+        let url = self.url_for_path("/news-sentiment", Some(params));
+        let ns: crate::NewsSentiment = reqwest::get(url).await?.json().await?;
+        Ok(ns)
+    }
+
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
