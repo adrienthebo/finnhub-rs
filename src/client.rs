@@ -28,14 +28,14 @@ impl Client {
         Ok(exchanges)
     }
 
-    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> Result<Vec<crate::StockSymbol>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> Result<Vec<crate::StockDesc>, Box<dyn std::error::Error + Send + Sync>> {
         let params = vec![("exchange", exchange.0.as_ref())];
         let url = self.url_for_path("/stock/symbol", Some(params));
-        let exchanges: Vec<crate::StockSymbol> = reqwest::get(url).await?.json().await?;
+        let exchanges: Vec<crate::StockDesc> = reqwest::get(url).await?.json().await?;
         Ok(exchanges)
     }
 
-    pub async fn quote(&self, symbol: crate::StockSymbolCode) -> Result<crate::Quote, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn quote(&self, symbol: crate::Symbol) -> Result<crate::Quote, Box<dyn std::error::Error + Send + Sync>> {
         let params = vec![("symbol", symbol.0.as_ref())];
         let url = self.url_for_path("/quote", Some(params));
         let quote: crate::Quote = reqwest::get(url).await?.json().await?;

@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             println!("{:#?}", client.symbols(exchange_code).await?);
         }
         ("quote", Some(matches)) => {
-            let stock_code = finnhub::StockSymbolCode(
+            let stock_code = finnhub::Symbol(
                 matches
                     .value_of("symbol")
                     .expect("Missing stock code")

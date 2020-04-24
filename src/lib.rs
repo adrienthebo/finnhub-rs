@@ -29,7 +29,7 @@ pub struct ExchangeCode(pub String);
 ///
 /// Definition: https://finnhub.io/docs/api#stock-symbols
 #[derive(Debug, Deserialize, Serialize)]
-pub struct StockSymbol {
+pub struct StockDesc {
     /// Symbol description
     description: String,
 
@@ -41,7 +41,7 @@ pub struct StockSymbol {
     symbol: String,
 }
 
-pub struct StockSymbolCode(pub String);
+pub struct Symbol(pub String);
 
 /// Get quote data. Constant polling is not recommended. Use websocket if you need real-time
 /// update.
