@@ -41,6 +41,35 @@ pub struct StockSymbol {
     symbol: String,
 }
 
+pub struct StockSymbolCode(pub String);
+
+/// Get quote data. Constant polling is not recommended. Use websocket if you need real-time
+/// update.
+///
+/// Definition: https://finnhub.io/docs/api#quote
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Quote {
+    /// Open price of the day
+    #[serde(rename = "o")]
+    open: f32,
+
+    /// High price of the day
+    #[serde(rename = "h")]
+    high: f32,
+
+    /// Low price of the day
+    #[serde(rename = "l")]
+    low: f32,
+
+    /// Current price
+    #[serde(rename = "c")]
+    current: f32,
+
+    /// Previous close price
+    #[serde(rename = "pc")]
+    previous_close: f32,
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

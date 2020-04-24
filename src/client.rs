@@ -35,6 +35,13 @@ impl Client {
         Ok(exchanges)
     }
 
+    pub async fn quote(&self, symbol: crate::StockSymbolCode) -> Result<crate::Quote, Box<dyn std::error::Error + Send + Sync>> {
+        let params = vec![("symbol", symbol.0.as_ref())];
+        let url = self.url_for_path("/quote", Some(params));
+        let quote: crate::Quote = reqwest::get(url).await?.json().await?;
+        Ok(quote)
+    }
+
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
