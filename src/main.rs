@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = finnhub::Client::with_token(token);
 
     match matches.subcommand() {
-        ("exchanges", Some(_)) => println!("{:#?}", client.exchanges().await?),
+        ("exchanges", Some(_)) => println!("{:#?}", client.exchanges().await?.inner),
         ("symbols", Some(matches)) => {
             let exchange_code = finnhub::ExchangeCode(
                 matches
@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing exchange code")
                     .to_string(),
             );
-            println!("{:#?}", client.symbols(exchange_code).await?);
+            println!("{:#?}", client.symbols(exchange_code).await?.inner);
         }
         ("quote", Some(matches)) => {
             let stock_code = finnhub::Symbol(
@@ -74,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{:#?}", client.quote(stock_code).await?);
+            println!("{:#?}", client.quote(stock_code).await?.inner);
         }
         ("news-sentiment", Some(matches)) => {
             let stock_code = finnhub::Symbol(
@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{}", serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?).unwrap());
+            println!("{}", serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?.inner).unwrap());
         }
         ("peers", Some(matches)) => {
             let stock_code = finnhub::Symbol(
@@ -92,10 +92,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{}", serde_json::to_string_pretty(&client.peers(stock_code).await?).unwrap());
+            println!("{}", serde_json::to_string_pretty(&client.peers(stock_code).await?.inner).unwrap());
         }
         //None => println!("No subcommand was used"),
-        _ => println!("Some other subcommand was used"),
+        ("", _) => println!("No subcommand given"),
+        (unknown, _) => println!("Unhandled: {}", unknown),
     }
 
     Ok(())

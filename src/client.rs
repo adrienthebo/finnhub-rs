@@ -12,7 +12,62 @@ pub struct Client {
     baseurl: Url,
 }
 
-pub type ApiResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
+#[derive(Debug)]
+pub struct Ratelimit {
+    /// The maximum number of weighted API calls for this time period.
+    limit: u32,
+
+    /// The remaining number of weighted API calls for this time period.
+    remaining: u32,
+
+    /// The time when the API limit resets.
+    ///
+    reset: chrono::DateTime<chrono::Utc>,
+}
+
+impl Ratelimit {
+    pub fn from_headers(headers: &reqwest::header::HeaderMap) -> Option<Self> {
+        use chrono::{DateTime, NaiveDateTime, Utc};
+
+        let maybe_limit = headers
+            .get("x-ratelimit-limit")
+            .and_then(|hv| hv.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok());
+        let maybe_remaining = headers
+            .get("x-ratelimit-remaining")
+            .and_then(|hv| hv.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok());
+        let maybe_reset = headers
+            .get("x-ratelimit-reset")
+            .and_then(|hv| hv.to_str().ok())
+            .and_then(|s| s.parse::<u32>().ok())
+            .and_then(|timestamp| NaiveDateTime::from_timestamp_opt(i64::from(timestamp), 0))
+            .map(|ndt| DateTime::<Utc>::from_utc(ndt, Utc));
+
+        if let (Some(limit), Some(remaining), Some(reset)) =
+            (maybe_limit, maybe_remaining, maybe_reset)
+        {
+            Some(Self {
+                limit,
+                remaining,
+                reset,
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn till_reset(&self) -> chrono::Duration {
+        self.reset - chrono::offset::Utc::now()
+    }
+}
+
+pub struct ApiCall<T> {
+    pub ratelimit: Option<Ratelimit>,
+    pub inner: T,
+}
+
+pub type ApiResult<T> = Result<ApiCall<T>, Box<dyn std::error::Error + Send + Sync>>;
 
 impl Client {
     const BASEURL: &'static str = "https://finnhub.io/api/v1/";
@@ -76,11 +131,22 @@ impl Client {
         url
     }
 
-    async fn get<T>(&self, url: Url) -> Result<T, Box<dyn std::error::Error + Send + Sync>>
+    async fn get<T>(&self, url: Url) -> ApiResult<T>
     where
         for<'de> T: serde::Deserialize<'de>,
     {
-        let response: T = reqwest::get(url).await?.json().await?;
-        Ok(response)
+        let response = reqwest::get(url).await?;
+        let ratelimit = Ratelimit::from_headers(&response.headers());
+        println!("ratelimit={:#?}", ratelimit);
+        response
+            .json::<T>()
+            .await
+            .map_err(|err| err.into())
+            .and_then(|body| {
+                Ok(ApiCall {
+                    ratelimit,
+                    inner: body,
+                })
+            })
     }
 }
