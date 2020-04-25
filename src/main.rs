@@ -6,7 +6,7 @@ use clap::{App, Arg, SubCommand};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let matches = App::new("Finnhub CLI")
+    let matches = App::new("Finnhub")
         .version("0.1.0")
         .author("Adrien Thebo <adrien@lagrange-automation.io")
         .about("Interact with the Finnhub API")
@@ -16,11 +16,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 .env("FINNHUB_TOKEN")
                 .long("token")
                 .value_name("STRING")
+                .required(true)
                 .help("Set the Finnhub API token"),
         )
-        .subcommand(SubCommand::with_name("exchanges"))
         .subcommand(
-            SubCommand::with_name("symbols").arg(
+            SubCommand::with_name("exchanges")
+                .about("List supported exchanges.")
+            )
+        .subcommand(
+            SubCommand::with_name("symbols")
+            .about("List supported stocks for an exchange.")
+            .arg(
                 Arg::with_name("exchange")
                     .index(1)
                     .required(true)
@@ -28,7 +34,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ),
         )
         .subcommand(
-            SubCommand::with_name("quote").arg(
+            SubCommand::with_name("quote")
+            .about("Get quote data. Constant polling is not recommended.")
+            .arg(
                 Arg::with_name("symbol")
                     .index(1)
                     .required(true)
@@ -36,7 +44,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ),
         )
         .subcommand(
-            SubCommand::with_name("news-sentiment").arg(
+            SubCommand::with_name("news-sentiment")
+            .about("Get company's news sentiment and statistics for US companies.")
+            .arg(
                 Arg::with_name("symbol")
                     .index(1)
                     .required(true)
@@ -44,7 +54,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             ),
         )
         .subcommand(
-            SubCommand::with_name("peers").arg(
+            SubCommand::with_name("peers")
+            .about("Get company peers in the same country and GICS sub-industry.")
+            .arg(
                 Arg::with_name("symbol")
                     .index(1)
                     .required(true)

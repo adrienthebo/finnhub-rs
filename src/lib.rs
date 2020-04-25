@@ -10,7 +10,7 @@ pub use client::Client;
 
 use serde::{Deserialize, Serialize};
 
-/// A supported stock exchanges
+/// Supported stock exchanges
 ///
 /// Definition: https://finnhub.io/docs/api#stock-exchanges
 #[derive(Debug, Deserialize, Serialize)]
