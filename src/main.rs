@@ -1,6 +1,6 @@
 extern crate clap;
-extern crate tokio;
 extern crate serde_json;
+extern crate tokio;
 
 use clap::{App, Arg, SubCommand};
 
@@ -19,49 +19,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 .required(true)
                 .help("Set the Finnhub API token"),
         )
-        .subcommand(
-            SubCommand::with_name("exchanges")
-                .about("List supported exchanges.")
-            )
+        .subcommand(SubCommand::with_name("exchanges").about("List supported exchanges."))
         .subcommand(
             SubCommand::with_name("symbols")
-            .about("List supported stocks for an exchange.")
-            .arg(
-                Arg::with_name("exchange")
-                    .index(1)
-                    .required(true)
-                    .help("The exchange to query"),
-            ),
+                .about("List supported stocks for an exchange.")
+                .arg(
+                    Arg::with_name("exchange")
+                        .index(1)
+                        .required(true)
+                        .help("The exchange to query"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("quote")
-            .about("Get quote data. Constant polling is not recommended.")
-            .arg(
-                Arg::with_name("symbol")
-                    .index(1)
-                    .required(true)
-                    .help("The stock symbol to quote"),
-            ),
+                .about("Get quote data. Constant polling is not recommended.")
+                .arg(
+                    Arg::with_name("symbol")
+                        .index(1)
+                        .required(true)
+                        .help("The stock symbol to quote"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("news-sentiment")
-            .about("Get company's news sentiment and statistics for US companies.")
-            .arg(
-                Arg::with_name("symbol")
-                    .index(1)
-                    .required(true)
-                    .help("The stock symbol to quote"),
-            ),
+                .about("Get company's news sentiment and statistics for US companies.")
+                .arg(
+                    Arg::with_name("symbol")
+                        .index(1)
+                        .required(true)
+                        .help("The stock symbol to quote"),
+                ),
         )
         .subcommand(
             SubCommand::with_name("peers")
-            .about("Get company peers in the same country and GICS sub-industry.")
-            .arg(
-                Arg::with_name("symbol")
-                    .index(1)
-                    .required(true)
-                    .help("The stock symbol to quote"),
-            ),
+                .about("Get company peers in the same country and GICS sub-industry.")
+                .arg(
+                    Arg::with_name("symbol")
+                        .index(1)
+                        .required(true)
+                        .help("The stock symbol to quote"),
+                ),
         )
         .get_matches();
 
@@ -95,7 +92,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{}", serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?.inner).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?.inner)
+                    .unwrap()
+            );
         }
         ("peers", Some(matches)) => {
             let stock_code = finnhub::Symbol(
@@ -104,7 +105,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .expect("Missing stock code")
                     .to_string(),
             );
-            println!("{}", serde_json::to_string_pretty(&client.peers(stock_code).await?.inner).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&client.peers(stock_code).await?.inner).unwrap()
+            );
         }
         //None => println!("No subcommand was used"),
         ("", _) => println!("No subcommand given"),

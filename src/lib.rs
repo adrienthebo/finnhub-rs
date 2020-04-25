@@ -1,7 +1,7 @@
+extern crate http;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-extern crate http;
 extern crate url;
 
 mod client;
@@ -76,7 +76,6 @@ pub struct Quote {
 /// Definition: https://finnhub.io/docs/api#news-sentiment
 #[derive(Debug, Deserialize, Serialize)]
 pub struct NewsSentiment {
-
     /// Statistics of company news in the past week.
     pub buzz: Option<Buzz>,
 
