@@ -8,6 +8,8 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
+before_script:
+  - rustup component add rustfmt
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
