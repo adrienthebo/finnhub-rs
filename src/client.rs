@@ -113,6 +113,15 @@ impl Client {
         .await
     }
 
+    pub async fn executives(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
+        self.get::<crate::Executives>(
+            self.url_for_path("/stock/executive", Some(vec![("symbol", symbol.0.as_ref())])),
+        )
+        .await.map(|ac| {
+            ApiCall { ratelimit: ac.ratelimit, inner: ac.inner.executive }
+        })
+    }
+
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
