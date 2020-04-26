@@ -114,12 +114,19 @@ impl Client {
     }
 
     pub async fn executives(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
-        self.get::<crate::Executives>(
-            self.url_for_path("/stock/executive", Some(vec![("symbol", symbol.0.as_ref())])),
+        use serde_json::Value;
+        self.get_with::<Vec<crate::Executive>, _>(
+            self.url_for_path(
+                "/stock/executive",
+                Some(vec![("symbol", symbol.0.as_ref())]),
+            ),
+            |value: Value| {
+                let key = value.as_object().unwrap().get("executive").unwrap();
+                let json_array = Value::from(key.clone());
+                Ok(serde_json::value::from_value::<Vec<crate::Executive>>(json_array).unwrap())
+            },
         )
-        .await.map(|ac| {
-            ApiCall { ratelimit: ac.ratelimit, inner: ac.inner.executive }
-        })
+        .await
     }
 
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
@@ -140,22 +147,42 @@ impl Client {
         url
     }
 
+    /// Fetch the given `url` and deserialize the object into T.
     async fn get<T>(&self, url: Url) -> ApiResult<T>
     where
-        for<'de> T: serde::Deserialize<'de>,
+        for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
+        T: std::fmt::Debug,
     {
+        self.get_with(url, |value: serde_json::Value| {
+            let result = serde_json::from_value::<T>(value).unwrap();
+            Ok(result)
+        })
+        .await
+    }
+
+    /// Fetch the given `url` and deserialize the object with the given fn.
+    async fn get_with<T, F>(&self, url: Url, f: F) -> ApiResult<T>
+    where
+        F: FnOnce(serde_json::Value) -> Result<T, Box<dyn std::error::Error + Send + Sync>>,
+        for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
+        T: std::fmt::Debug,
+    {
+        let duplicate = reqwest::get(url.clone()).await?;
         let response = reqwest::get(url).await?;
+
+        dbg!(duplicate.text().await?);
+
         let ratelimit = Ratelimit::from_headers(&response.headers());
         println!("ratelimit={:#?}", ratelimit);
         response
-            .json::<T>()
+            .json()
             .await
             .map_err(|err| err.into())
             .and_then(|body| {
-                Ok(ApiCall {
-                    ratelimit,
-                    inner: body,
-                })
+                println!("body={:?}", &body);
+                let inner = f(body)?;
+
+                Ok(ApiCall { ratelimit, inner })
             })
     }
 }
