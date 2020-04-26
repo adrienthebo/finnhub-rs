@@ -133,9 +133,3 @@ pub struct Executive {
     // TODO: chrono::Date
     since: Option<String>,
 }
-
-/// XXX: this struct shouldn't be necessary
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Executives {
-    pub executive: Vec<Executive>
-}
