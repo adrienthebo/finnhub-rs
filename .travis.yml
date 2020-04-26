@@ -4,7 +4,6 @@ cache: cargo
 rust:
   - stable
   - beta
-  - nightly
 before_script:
   - rustup component add rustfmt
   - rustup component add clippy-preview
