@@ -123,7 +123,8 @@ impl Client {
             |value: Value| {
                 let key = value.as_object().unwrap().get("executive").unwrap();
                 let json_array = Value::from(key.clone());
-                Ok(serde_json::value::from_value::<Vec<crate::Executive>>(json_array).unwrap())
+                serde_json::value::from_value::<Vec<crate::Executive>>(json_array)
+                    .map_err(|e| Box::from(e))
             },
         )
         .await
@@ -154,8 +155,7 @@ impl Client {
         T: std::fmt::Debug,
     {
         self.get_with(url, |value: serde_json::Value| {
-            let result = serde_json::from_value::<T>(value).unwrap();
-            Ok(result)
+            serde_json::from_value::<T>(value).map_err(|e| Box::from(e))
         })
         .await
     }
@@ -167,11 +167,10 @@ impl Client {
         for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
         T: std::fmt::Debug,
     {
-        let duplicate = reqwest::get(url.clone()).await?;
+        //let duplicate = reqwest::get(url.clone()).await?;
+        //dbg!(duplicate.text().await?);
+
         let response = reqwest::get(url).await?;
-
-        dbg!(duplicate.text().await?);
-
         let ratelimit = Ratelimit::from_headers(&response.headers());
         println!("ratelimit={:#?}", ratelimit);
         response
