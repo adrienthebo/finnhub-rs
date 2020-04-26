@@ -5,13 +5,21 @@ rust:
   - stable
   - beta
   - nightly
-matrix:
-  allow_failures:
-    - rust: nightly
 before_script:
   - rustup component add rustfmt
   - rustup component add clippy-preview
 script:
-  - cargo build --verbose --all
   - cargo test --verbose --all
   - cargo fmt -- --check
+  - cargo clippy
+
+matrix:
+  allow_failures:
+    - rust: nightly
+  include:
+    - script: cargo test --verbose --all
+    - script: cargo fmt -- --check
+    - script: cargo clippy
+
+notifications:
+  email: false
