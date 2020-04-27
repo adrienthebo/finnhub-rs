@@ -179,7 +179,7 @@ impl Client {
 
         let response = reqwest::get(url).await?;
         let ratelimit = Ratelimit::from_headers(&response.headers());
-        println!("ratelimit={:#?}", ratelimit);
+        eprintln!("ratelimit={:#?}", ratelimit);
         response
             .json()
             .await
