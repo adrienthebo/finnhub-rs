@@ -133,3 +133,59 @@ pub struct Executive {
     // TODO: chrono::Date
     since: Option<String>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct NewsArticle {
+    category: String,
+    datetime: u32,
+    headline: String,
+    id: u32,
+    image: url::Url,
+    related: String,
+    source: String,
+    summary: String,
+    url: url::Url,
+}
+
+#[derive(Debug)]
+pub enum NewsCategory {
+    General,
+    Forex,
+    Crypto,
+    Merger,
+}
+
+impl std::string::ToString for NewsCategory {
+    fn to_string(&self) -> String {
+        match self {
+            NewsCategory::General => "general",
+            NewsCategory::Forex => "forex",
+            NewsCategory::Crypto => "crypto",
+            NewsCategory::Merger => "Merger",
+        }
+        .into()
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseNewsCategoryError;
+
+impl std::fmt::Display for ParseNewsCategoryError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", "not a valid news category")
+    }
+}
+
+impl std::str::FromStr for NewsCategory {
+    type Err = ParseNewsCategoryError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "general" => Ok(NewsCategory::General),
+            "forex" => Ok(NewsCategory::Forex),
+            "crypto" => Ok(NewsCategory::Crypto),
+            "merger" => Ok(NewsCategory::Merger),
+            _ => Err(ParseNewsCategoryError),
+        }
+    }
+}
