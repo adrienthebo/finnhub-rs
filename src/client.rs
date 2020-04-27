@@ -115,17 +115,21 @@ impl Client {
 
     pub async fn executives(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
         use serde_json::Value;
+
         self.get_with::<Vec<crate::Executive>, _>(
             self.url_for_path(
                 "/stock/executive",
                 Some(vec![("symbol", symbol.0.as_ref())]),
             ),
             |value: Value| {
-                let key = value.as_object().unwrap().get("executive").unwrap();
-                let json_array = Value::from(key.clone());
-                serde_json::value::from_value::<Vec<crate::Executive>>(json_array)
-                    .map_err(|e| Box::from(e))
-            },
+            value
+                .as_object()
+                .and_then(|m| m.get("executive"))
+                .ok_or_else(|| unimplemented!())
+                .map(|v| Value::from(v.clone()))
+                .and_then(|v| serde_json::value::from_value::<Vec<crate::Executive>>(v))
+                .map_err(|e| Box::from(e))
+        },
         )
         .await
     }
