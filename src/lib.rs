@@ -117,3 +117,19 @@ pub struct Sentiment {
     #[serde(rename = "bullishPercent")]
     bullish_percent: Option<f32>,
 }
+
+/// Get a list of company's executives and members of the Board.
+///
+/// Definition: https://finnhub.io/docs/api#company-executive
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Executive {
+    age: Option<u8>,
+    compensation: Option<f32>,
+    currency: String,
+    name: String,
+    position: String,
+    sex: String,
+
+    // TODO: chrono::Date
+    since: Option<String>,
+}

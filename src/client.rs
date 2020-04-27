@@ -113,6 +113,30 @@ impl Client {
         .await
     }
 
+    pub async fn executives(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
+        use serde_json::Value;
+
+        self.get_with::<Vec<crate::Executive>, _>(
+            self.url_for_path(
+                "/stock/executive",
+                Some(vec![("symbol", symbol.0.as_ref())]),
+            ),
+            |value: Value| {
+                value
+                    .as_object()
+                    .and_then(|m| m.get("executive"))
+                    .ok_or_else(|| Box::from(DeserializeError::new("JSON missing key 'executive'")))
+                    // XXX: probably unnecessary clone
+                    .map(|v| Value::from(v.clone()))
+                    .and_then(|v| {
+                        serde_json::value::from_value::<Vec<crate::Executive>>(v)
+                            .map_err(|e| Box::from(e))
+                    })
+            },
+        )
+        .await
+    }
+
     fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
@@ -131,22 +155,58 @@ impl Client {
         url
     }
 
+    /// Fetch the given `url` and deserialize the object into T.
     async fn get<T>(&self, url: Url) -> ApiResult<T>
     where
-        for<'de> T: serde::Deserialize<'de>,
+        for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
+        T: std::fmt::Debug,
     {
+        self.get_with(url, |value: serde_json::Value| {
+            serde_json::from_value::<T>(value).map_err(|e| Box::from(e))
+        })
+        .await
+    }
+
+    /// Fetch the given `url` and deserialize the object with the given fn.
+    async fn get_with<T, F>(&self, url: Url, f: F) -> ApiResult<T>
+    where
+        F: FnOnce(serde_json::Value) -> Result<T, Box<dyn std::error::Error + Send + Sync>>,
+        for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
+        T: std::fmt::Debug,
+    {
+        //let duplicate = reqwest::get(url.clone()).await?;
+        //dbg!(duplicate.text().await?);
+
         let response = reqwest::get(url).await?;
         let ratelimit = Ratelimit::from_headers(&response.headers());
         println!("ratelimit={:#?}", ratelimit);
         response
-            .json::<T>()
+            .json()
             .await
             .map_err(|err| err.into())
-            .and_then(|body| {
-                Ok(ApiCall {
-                    ratelimit,
-                    inner: body,
-                })
-            })
+            .and_then(|body| f(body))
+            .map(|inner| ApiCall { ratelimit, inner })
     }
 }
+
+#[derive(Debug)]
+pub struct DeserializeError<'a> {
+    msg: std::borrow::Cow<'a, str>,
+}
+
+impl<'a> DeserializeError<'a> {
+    pub fn new<T>(m: T) -> DeserializeError<'a>
+    where
+        T: Into<std::borrow::Cow<'a, str>>,
+    {
+        Self { msg: m.into() }
+    }
+}
+
+impl<'a> std::fmt::Display for DeserializeError<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.msg)
+    }
+}
+
+impl<'a> std::error::Error for DeserializeError<'a> {}
