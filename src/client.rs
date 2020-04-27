@@ -182,12 +182,8 @@ impl Client {
             .json()
             .await
             .map_err(|err| err.into())
-            .and_then(|body| {
-                println!("body={:?}", &body);
-                let inner = f(body)?;
-
-                Ok(ApiCall { ratelimit, inner })
-            })
+            .and_then(|body| f(body))
+            .map(|inner| ApiCall { ratelimit, inner })
     }
 }
 
