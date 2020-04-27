@@ -122,14 +122,15 @@ impl Client {
                 Some(vec![("symbol", symbol.0.as_ref())]),
             ),
             |value: Value| {
-            value
-                .as_object()
-                .and_then(|m| m.get("executive"))
-                .ok_or_else(|| unimplemented!())
-                .map(|v| Value::from(v.clone()))
-                .and_then(|v| serde_json::value::from_value::<Vec<crate::Executive>>(v))
-                .map_err(|e| Box::from(e))
-        },
+                value
+                    .as_object()
+                    .and_then(|m| m.get("executive"))
+                    .ok_or_else(|| Box::from(DeserializeError::new("JSON missing key 'executive'")))
+                    // XXX: probably unnecessary clone
+                    .map(|v| Value::from(v.clone()))
+                    .and_then(|v| serde_json::value::from_value::<Vec<crate::Executive>>(v)
+                    .map_err(|e| Box::from(e)))
+            },
         )
         .await
     }
@@ -188,4 +189,29 @@ impl Client {
                 Ok(ApiCall { ratelimit, inner })
             })
     }
+}
+
+#[derive(Debug)]
+pub struct DeserializeError<'a> {
+    msg: std::borrow::Cow<'a, str>
+}
+
+impl<'a> DeserializeError<'a> {
+    pub fn new<T>(m: T) -> DeserializeError<'a>
+    where
+        T: Into<std::borrow::Cow<'a, str>>
+    {
+        Self {
+            msg: m.into()
+        }
+    }
+}
+
+impl<'a> std::fmt::Display for DeserializeError<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.msg)
+    }
+}
+
+impl<'a> std::error::Error for DeserializeError<'a> {
 }
