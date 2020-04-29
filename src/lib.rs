@@ -1,9 +1,3 @@
-extern crate http;
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
-extern crate url;
-
 mod client;
 
 pub use client::Client;
