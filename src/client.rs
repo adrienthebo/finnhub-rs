@@ -4,14 +4,6 @@
 
 use url::Url;
 
-pub struct Client {
-    /// The Finnhub API token
-    token: String,
-
-    /// The Finnhub API base URL
-    baseurl: Url,
-}
-
 #[derive(Debug)]
 pub struct Ratelimit {
     /// The maximum number of weighted API calls for this time period.
@@ -69,12 +61,24 @@ pub struct ApiCall<T> {
 
 pub type ApiResult<T> = Result<ApiCall<T>, Box<dyn std::error::Error + Send + Sync>>;
 
-impl Client {
+pub struct Client<'a> {
+    /// The Finnhub API token
+    token: std::borrow::Cow<'a, str>,
+
+    /// The Finnhub API base URL
+    baseurl: Url,
+}
+
+impl<'a> Client<'a> {
     const BASEURL: &'static str = "https://finnhub.io/api/v1";
 
-    pub fn with_token(token: &str) -> Self {
+    pub fn with_token<T>(token: T) -> Self
+    where
+        T: Into<std::borrow::Cow<'a, str>>,
+    {
+
         Self {
-            token: token.to_owned().to_string(),
+            token: token.into(),
             baseurl: Self::BASEURL.parse().unwrap(),
         }
     }
@@ -102,7 +106,7 @@ impl Client {
     pub async fn news(&self, category: crate::NewsCategory) -> ApiResult<Vec<crate::NewsArticle>> {
         self.get::<Vec<crate::NewsArticle>>(self.url_for_path(
             "/news",
-            Some(vec![("category", category.to_string().as_ref())]),
+            Some(vec![("category", category.as_str())]),
         ))
         .await
     }

@@ -149,15 +149,21 @@ pub enum NewsCategory {
     Merger,
 }
 
-impl std::string::ToString for NewsCategory {
-    fn to_string(&self) -> String {
+impl NewsCategory {
+    pub fn as_str(&self) -> &str {
         match self {
             NewsCategory::General => "general",
             NewsCategory::Forex => "forex",
             NewsCategory::Crypto => "crypto",
             NewsCategory::Merger => "Merger",
         }
-        .into()
+    }
+
+}
+
+impl std::string::ToString for NewsCategory {
+    fn to_string(&self) -> String {
+        self.as_str().to_string()
     }
 }
 
