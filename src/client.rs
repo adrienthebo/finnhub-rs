@@ -70,7 +70,7 @@ pub struct ApiCall<T> {
 pub type ApiResult<T> = Result<ApiCall<T>, Box<dyn std::error::Error + Send + Sync>>;
 
 impl Client {
-    const BASEURL: &'static str = "https://finnhub.io/api/v1/";
+    const BASEURL: &'static str = "https://finnhub.io/api/v1";
 
     pub fn with_token(token: &str) -> Self {
         Self {
@@ -145,11 +145,27 @@ impl Client {
         .await
     }
 
-    fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
+    /// Generate a URL for the given path and optional params.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let client = finnhub::Client::with_token("some-token");
+    /// let url = client.url_for_path("news", None);
+    /// assert_eq!(url, "https://finnhub.io/api/v1/news?token=some-token".parse().unwrap());
+    /// ```
+    ///
+    /// ```rust
+    /// let client = finnhub::Client::with_token("some-token");
+    /// let params = vec![("stock", "SPY")];
+    /// let url = client.url_for_path("stock/quote", Some(params));
+    /// assert_eq!(url, "https://finnhub.io/api/v1/stock/quote?token=some-token&stock=SPY".parse().unwrap());
+    /// ```
+    pub fn url_for_path(&self, path: &str, params: Option<Vec<(&str, &str)>>) -> Url {
         let mut url = self.baseurl.clone();
         {
             let mut segments = url.path_segments_mut().unwrap();
-            segments.push(path);
+            segments.extend(path.split('/'));
         }
         {
             let mut query_pairs = url.query_pairs_mut();
@@ -164,7 +180,20 @@ impl Client {
     }
 
     /// Fetch the given `url` and deserialize the object into T.
-    async fn get<T>(&self, url: Url) -> ApiResult<T>
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use futures::executor::block_on;
+    /// use finnhub::{Client, Quote};
+    ///
+    /// let client = Client::with_token("some-token");
+    /// let params = vec![("stock", "SPY")];
+    /// let url = client.url_for_path("stock/quote", Some(params));
+    /// block_on(client.get::<Quote>(url));
+    /// ```
+    ///
+    pub async fn get<T>(&self, url: Url) -> ApiResult<T>
     where
         for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
         T: std::fmt::Debug,
@@ -176,7 +205,26 @@ impl Client {
     }
 
     /// Fetch the given `url` and deserialize the object with the given fn.
-    async fn get_with<T, F>(&self, url: Url, f: F) -> ApiResult<T>
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use futures::executor::block_on;
+    /// use finnhub::{Client, Quote};
+    ///
+    /// let client = Client::with_token("some-token");
+    /// let params = vec![("stock", "SPY")];
+    /// let url = client.url_for_path("stock/quote", Some(params));
+    ///
+    /// let transform = |value: serde_json::Value| {
+    ///     serde_json::from_value::<Quote>(value)
+    ///         .map_err(|e| Box::from(e))
+    /// };
+    ///
+    /// block_on(client.get_with::<finnhub::Quote, _>(url, transform));
+    /// ```
+    ///
+    pub async fn get_with<T, F>(&self, url: Url, f: F) -> ApiResult<T>
     where
         F: FnOnce(serde_json::Value) -> Result<T, Box<dyn std::error::Error + Send + Sync>>,
         for<'de> T: serde::Deserialize<'de> + std::fmt::Debug,
