@@ -2,12 +2,12 @@ extern crate clap;
 extern crate serde_json;
 extern crate tokio;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, SubCommand, crate_version};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let matches = App::new("Finnhub")
-        .version("0.1.0")
+        .version(crate_version!())
         .author("Adrien Thebo <adrien@lagrange-automation.io")
         .about("Interact with the Finnhub API")
         .after_help("The market can stay irrational longer than you can remain solvent.")
