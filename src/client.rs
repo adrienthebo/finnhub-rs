@@ -99,6 +99,14 @@ impl Client {
         .await
     }
 
+    pub async fn news(&self, category: crate::NewsCategory) -> ApiResult<Vec<crate::NewsArticle>> {
+        self.get::<Vec<crate::NewsArticle>>(self.url_for_path(
+            "/news",
+            Some(vec![("category", category.to_string().as_ref())]),
+        ))
+        .await
+    }
+
     pub async fn news_sentiment(&self, symbol: crate::Symbol) -> ApiResult<crate::NewsSentiment> {
         self.get::<crate::NewsSentiment>(
             self.url_for_path("/news-sentiment", Some(vec![("symbol", symbol.0.as_ref())])),
