@@ -134,7 +134,7 @@ pub struct NewsArticle {
     datetime: u32,
     headline: String,
     id: u32,
-    image: url::Url,
+    //image: Option<url::Url>,
     related: String,
     source: String,
     summary: String,

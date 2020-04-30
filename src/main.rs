@@ -78,6 +78,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     .help("TODO"),
             ),
         )
+        .subcommand(
+            SubCommand::with_name("company-news")
+                .about("List latest company news by symbol. This endpoint is only available for US companies.")
+                .arg(
+                    Arg::with_name("symbol")
+                        .index(1)
+                        .required(true)
+                        .help("The company stock symbol"),
+                ),
+        )
         .get_matches();
 
     let token = matches.value_of("token").expect("Finnhub API token");
@@ -149,6 +159,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&client.news(category).await?.inner).unwrap()
+            );
+        }
+        ("company-news", Some(matches)) => {
+            let stock_code = finnhub::Symbol(
+                matches
+                    .value_of("symbol")
+                    .expect("Missing stock code")
+                    .to_string(),
+            );
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&client.company_news(stock_code).await?.inner).unwrap()
             );
         }
         //None => println!("No subcommand was used"),
