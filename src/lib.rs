@@ -183,7 +183,7 @@ pub struct ParseNewsCategoryError;
 
 impl std::fmt::Display for ParseNewsCategoryError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", "not a valid news category")
+        write!(f, "not a valid news category")
     }
 }
 

@@ -133,11 +133,9 @@ impl<'a> Client<'a> {
                     .as_object()
                     .and_then(|m| m.get("executive"))
                     .ok_or_else(|| Box::from(DeserializeError::new("JSON missing key 'executive'")))
-                    // XXX: probably unnecessary clone
-                    .map(|v| serde_json::Value::from(v.clone()))
                     .and_then(|v| {
-                        serde_json::value::from_value::<Vec<crate::Executive>>(v)
-                            .map_err(|e| Box::from(e))
+                        serde_json::value::from_value::<Vec<crate::Executive>>(v.clone())
+                            .map_err(Box::from)
                     })
             },
         )
@@ -217,7 +215,7 @@ impl<'a> Client<'a> {
         T: std::fmt::Debug,
     {
         self.get_with(url, |value: serde_json::Value| {
-            serde_json::from_value::<T>(value).map_err(|e| Box::from(e))
+            serde_json::from_value::<T>(value).map_err(Box::from)
         })
         .await
     }

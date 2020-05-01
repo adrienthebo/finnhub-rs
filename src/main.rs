@@ -48,7 +48,7 @@ enum Command {
 macro_rules! async_to_json {
     ($e:expr) => {
         $e.await
-            .and_then(|v| serde_json::value::to_value(v.inner).map_err(|e| Box::from(e)))
+            .and_then(|v| serde_json::value::to_value(v.inner).map_err(Box::from))
     };
 }
 
