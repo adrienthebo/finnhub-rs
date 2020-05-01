@@ -2,180 +2,105 @@ extern crate clap;
 extern crate serde_json;
 extern crate tokio;
 
-use clap::{App, Arg, SubCommand, crate_version};
+use clap::{crate_version, Clap};
+
+#[derive(Debug, clap::Clap)]
+#[clap(version = crate_version!(), author = "Adrien Thebo <adrien@lagrange-automation.io", after_help = "The market remain irrational longer than you can remain solvent.")]
+struct RootCommand {
+    #[clap(subcommand)]
+    command: Commands,
+
+    #[clap(long, env = "FINNHUB_TOKEN")]
+    /// The Finnhub API token.
+    token: String,
+}
+
+#[derive(Debug, clap::Clap)]
+#[clap(name = rename_all, rename_all = "Kebab case")]
+enum Commands {
+    /// List supported exchanges.
+    Exchanges,
+
+    /// Get general news.
+    News {
+        category: finnhub::NewsCategory,
+    },
+
+    /// List supported stocks for an exchange.
+    Symbols {
+        exchange: finnhub::ExchangeCode,
+    },
+
+    Quote {
+        symbol: finnhub::Symbol,
+    },
+
+    /// News sentiment and statistics for US companies.
+    NewsSentiment {
+        symbol: finnhub::Symbol,
+    },
+
+    /// Get company peers in the same country and GICS sub-industry.
+    Peers {
+        symbol: finnhub::Symbol,
+    },
+
+    /// Get company peers in the same country and GICS sub-industry.
+    Executives {
+        symbol: finnhub::Symbol,
+    },
+
+    /// List latest company news by symbol. This endpoint is only available for US companies.
+    CompanyNews {
+        symbol: finnhub::Symbol,
+    },
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let matches = App::new("Finnhub")
-        .version(crate_version!())
-        .author("Adrien Thebo <adrien@lagrange-automation.io")
-        .about("Interact with the Finnhub API")
-        .after_help("The market can stay irrational longer than you can remain solvent.")
-        .arg(
-            Arg::with_name("token")
-                .env("FINNHUB_TOKEN")
-                .long("token")
-                .value_name("STRING")
-                .required(true)
-                .help("Set the Finnhub API token"),
-        )
-        .subcommand(SubCommand::with_name("exchanges").about("List supported exchanges."))
-        .subcommand(
-            SubCommand::with_name("symbols")
-                .about("List supported stocks for an exchange.")
-                .arg(
-                    Arg::with_name("exchange")
-                        .index(1)
-                        .required(true)
-                        .help("The exchange to query"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("quote")
-                .about("Get quote data. Constant polling is not recommended.")
-                .arg(
-                    Arg::with_name("symbol")
-                        .index(1)
-                        .required(true)
-                        .help("The stock symbol to quote"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("news-sentiment")
-                .about("Get company's news sentiment and statistics for US companies.")
-                .arg(
-                    Arg::with_name("symbol")
-                        .index(1)
-                        .required(true)
-                        .help("The stock symbol to quote"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("peers")
-                .about("Get company peers in the same country and GICS sub-industry.")
-                .arg(
-                    Arg::with_name("symbol")
-                        .index(1)
-                        .required(true)
-                        .help("The stock symbol to quote"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("executives")
-                .about("Get company peers in the same country and GICS sub-industry.")
-                .arg(
-                    Arg::with_name("symbol")
-                        .index(1)
-                        .required(true)
-                        .help("The company stock symbol"),
-                ),
-        )
-        .subcommand(
-            SubCommand::with_name("news").about("Get general news").arg(
-                Arg::with_name("category")
-                    .index(1)
-                    .required(true)
-                    .help("TODO"),
-            ),
-        )
-        .subcommand(
-            SubCommand::with_name("company-news")
-                .about("List latest company news by symbol. This endpoint is only available for US companies.")
-                .arg(
-                    Arg::with_name("symbol")
-                        .index(1)
-                        .required(true)
-                        .help("The company stock symbol"),
-                ),
-        )
-        .get_matches();
+    let opts = RootCommand::parse();
 
-    let token = matches.value_of("token").expect("Finnhub API token");
-    let client = finnhub::Client::with_token(token);
+    // let token = matches.value_of("token").expect("Finnhub API token");
+    let client = finnhub::Client::with_token(opts.token);
 
-    match matches.subcommand() {
-        ("exchanges", Some(_)) => println!("{:#?}", client.exchanges().await?.inner),
-        ("symbols", Some(matches)) => {
-            let exchange_code = finnhub::ExchangeCode(
-                matches
-                    .value_of("exchange")
-                    .expect("Missing exchange code")
-                    .to_string(),
-            );
-            println!("{:#?}", client.symbols(exchange_code).await?.inner);
+    match opts.command {
+        Commands::Exchanges { .. } => println!("{:#?}", client.exchanges().await?.inner),
+        Commands::Symbols { exchange } => {
+            println!("{:#?}", client.symbols(exchange).await?.inner);
         }
-        ("quote", Some(matches)) => {
-            let stock_code = finnhub::Symbol(
-                matches
-                    .value_of("symbol")
-                    .expect("Missing stock code")
-                    .to_string(),
-            );
-            println!("{:#?}", client.quote(stock_code).await?.inner);
+        Commands::Quote { symbol } => {
+            println!("{:#?}", client.quote(symbol).await?.inner);
         }
-        ("news-sentiment", Some(matches)) => {
-            let stock_code = finnhub::Symbol(
-                matches
-                    .value_of("symbol")
-                    .expect("Missing stock code")
-                    .to_string(),
-            );
+        Commands::NewsSentiment { symbol } => {
             println!(
                 "{}",
-                serde_json::to_string_pretty(&client.news_sentiment(stock_code).await?.inner)
-                    .unwrap()
+                serde_json::to_string_pretty(&client.news_sentiment(symbol).await?.inner).unwrap()
             );
         }
-        ("peers", Some(matches)) => {
-            let stock_code = finnhub::Symbol(
-                matches
-                    .value_of("symbol")
-                    .expect("Missing stock code")
-                    .to_string(),
-            );
+        Commands::Peers { symbol } => {
             println!(
                 "{}",
-                serde_json::to_string_pretty(&client.peers(stock_code).await?.inner).unwrap()
+                serde_json::to_string_pretty(&client.peers(symbol).await?.inner).unwrap()
             );
         }
-        ("executives", Some(matches)) => {
-            let stock_code = finnhub::Symbol(
-                matches
-                    .value_of("symbol")
-                    .expect("Missing stock code")
-                    .to_string(),
-            );
+        Commands::Executives { symbol } => {
             println!(
                 "{}",
-                serde_json::to_string_pretty(&client.executives(stock_code).await?.inner).unwrap()
+                serde_json::to_string_pretty(&client.executives(symbol).await?.inner).unwrap()
             );
         }
-        ("news", Some(matches)) => {
-            let category: finnhub::NewsCategory = matches
-                .value_of("category")
-                .expect("missing category")
-                .parse()
-                .expect("news category");
+        Commands::News { category } => {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&client.news(category).await?.inner).unwrap()
             );
         }
-        ("company-news", Some(matches)) => {
-            let stock_code = finnhub::Symbol(
-                matches
-                    .value_of("symbol")
-                    .expect("Missing stock code")
-                    .to_string(),
-            );
+        Commands::CompanyNews { symbol } => {
             println!(
                 "{}",
-                serde_json::to_string_pretty(&client.company_news(stock_code).await?.inner).unwrap()
+                serde_json::to_string_pretty(&client.company_news(symbol).await?.inner).unwrap()
             );
         }
-        //None => println!("No subcommand was used"),
-        ("", _) => println!("No subcommand given"),
-        (unknown, _) => println!("Unhandled: {}", unknown),
     }
 
     Ok(())

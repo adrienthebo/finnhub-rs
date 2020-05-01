@@ -17,7 +17,16 @@ pub struct Exchange {
     name: String,
 }
 
+#[derive(Debug)]
 pub struct ExchangeCode(pub String);
+
+impl std::str::FromStr for ExchangeCode {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
+    }
+}
 
 /// Supported stock symbol
 ///
@@ -37,6 +46,14 @@ pub struct StockDesc {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Symbol(pub String);
+
+impl std::str::FromStr for Symbol {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
+    }
+}
 
 /// Get quote data. Constant polling is not recommended. Use websocket if you need real-time
 /// update.
