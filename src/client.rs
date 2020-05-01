@@ -156,6 +156,13 @@ impl<'a> Client<'a> {
         .await
     }
 
+    pub async fn price_target(&self, symbol: &crate::Symbol) -> ApiResult<crate::PriceTarget> {
+        self.get::<crate::PriceTarget>(
+            self.url_for_path("/stock/price-target", Some(vec![("symbol", symbol.0.as_ref())])),
+        )
+        .await
+    }
+
     /// Generate a URL for the given path and optional params.
     ///
     /// # Examples

@@ -50,6 +50,11 @@ enum Command {
     CompanyNews {
         symbol: finnhub::Symbol,
     },
+
+    /// Get latest price target consensus.
+    PriceTarget {
+        symbol: finnhub::Symbol,
+    },
 }
 
 impl Command {
@@ -88,6 +93,10 @@ impl Command {
                 .map(|v| serde_json::value::to_value(v.inner).unwrap()),
             Command::CompanyNews { symbol } => client
                 .company_news(symbol)
+                .await
+                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
+            Command::PriceTarget { symbol } => client
+                .price_target(symbol)
                 .await
                 .map(|v| serde_json::value::to_value(v.inner).unwrap()),
         }
