@@ -88,7 +88,7 @@ impl<'a> Client<'a> {
             .await
     }
 
-    pub async fn symbols(&self, exchange: crate::ExchangeCode) -> ApiResult<Vec<crate::StockDesc>> {
+    pub async fn symbols(&self, exchange: &crate::ExchangeCode) -> ApiResult<Vec<crate::StockDesc>> {
         self.get::<Vec<crate::StockDesc>>(self.url_for_path(
             "/stock/symbol",
             Some(vec![("exchange", exchange.0.as_ref())]),
@@ -96,14 +96,14 @@ impl<'a> Client<'a> {
         .await
     }
 
-    pub async fn quote(&self, symbol: crate::Symbol) -> ApiResult<crate::Quote> {
+    pub async fn quote(&self, symbol: &crate::Symbol) -> ApiResult<crate::Quote> {
         self.get::<crate::Quote>(
             self.url_for_path("/quote", Some(vec![("symbol", symbol.0.as_ref())])),
         )
         .await
     }
 
-    pub async fn news(&self, category: crate::NewsCategory) -> ApiResult<Vec<crate::NewsArticle>> {
+    pub async fn news(&self, category: &crate::NewsCategory) -> ApiResult<Vec<crate::NewsArticle>> {
         self.get::<Vec<crate::NewsArticle>>(self.url_for_path(
             "/news",
             Some(vec![("category", category.as_str())]),
@@ -111,28 +111,28 @@ impl<'a> Client<'a> {
         .await
     }
 
-    pub async fn news_sentiment(&self, symbol: crate::Symbol) -> ApiResult<crate::NewsSentiment> {
+    pub async fn news_sentiment(&self, symbol: &crate::Symbol) -> ApiResult<crate::NewsSentiment> {
         self.get::<crate::NewsSentiment>(
             self.url_for_path("/news-sentiment", Some(vec![("symbol", symbol.0.as_ref())])),
         )
         .await
     }
 
-    pub async fn company_news(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::NewsArticle>> {
+    pub async fn company_news(&self, symbol: &crate::Symbol) -> ApiResult<Vec<crate::NewsArticle>> {
         self.get::<Vec<crate::NewsArticle>>(
             self.url_for_path(format!("/news/{}", &symbol.0).as_str(), None),
         )
         .await
     }
 
-    pub async fn peers(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Symbol>> {
+    pub async fn peers(&self, symbol: &crate::Symbol) -> ApiResult<Vec<crate::Symbol>> {
         self.get::<Vec<crate::Symbol>>(
             self.url_for_path("/stock/peers", Some(vec![("symbol", symbol.0.as_ref())])),
         )
         .await
     }
 
-    pub async fn executives(&self, symbol: crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
+    pub async fn executives(&self, symbol: &crate::Symbol) -> ApiResult<Vec<crate::Executive>> {
         use serde_json::Value;
 
         self.get_with::<Vec<crate::Executive>, _>(
