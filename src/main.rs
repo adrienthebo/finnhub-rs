@@ -18,44 +18,35 @@ enum Command {
     Exchanges,
 
     /// Get general news.
-    News {
-        category: finnhub::NewsCategory,
-    },
+    News { category: finnhub::NewsCategory },
 
     /// List supported stocks for an exchange.
-    Symbols {
-        exchange: finnhub::ExchangeCode,
-    },
+    Symbols { exchange: finnhub::ExchangeCode },
 
     /// Get quote data. Constant polling is not recommended.
-    Quote {
-        symbol: finnhub::Symbol,
-    },
+    Quote { symbol: finnhub::Symbol },
 
     /// News sentiment and statistics for US companies.
-    NewsSentiment {
-        symbol: finnhub::Symbol,
-    },
+    NewsSentiment { symbol: finnhub::Symbol },
 
     /// Get company peers in the same country and GICS sub-industry.
-    Peers {
-        symbol: finnhub::Symbol,
-    },
+    Peers { symbol: finnhub::Symbol },
 
     /// Get company peers in the same country and GICS sub-industry.
-    Executives {
-        symbol: finnhub::Symbol,
-    },
+    Executives { symbol: finnhub::Symbol },
 
     /// List latest company news by symbol. (US companies only.)
-    CompanyNews {
-        symbol: finnhub::Symbol,
-    },
+    CompanyNews { symbol: finnhub::Symbol },
 
     /// Get latest price target consensus.
-    PriceTarget {
-        symbol: finnhub::Symbol,
-    },
+    PriceTarget { symbol: finnhub::Symbol },
+}
+
+macro_rules! async_to_json {
+    ($e:expr) => {
+        $e.await
+            .and_then(|v| serde_json::value::to_value(v.inner).map_err(|e| Box::from(e)))
+    };
 }
 
 impl Command {
@@ -64,42 +55,15 @@ impl Command {
         client: &finnhub::Client<'_>,
     ) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
         match self {
-            Command::Exchanges => client
-                .exchanges()
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::Symbols { exchange } => client
-                .symbols(exchange)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::Quote { symbol } => client
-                .quote(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::NewsSentiment { symbol } => client
-                .news_sentiment(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::Peers { symbol } => client
-                .peers(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::Executives { symbol } => client
-                .executives(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::News { category } => client
-                .news(category)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::CompanyNews { symbol } => client
-                .company_news(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
-            Command::PriceTarget { symbol } => client
-                .price_target(symbol)
-                .await
-                .map(|v| serde_json::value::to_value(v.inner).unwrap()),
+            Command::Exchanges => async_to_json!(client.exchanges()),
+            Command::Symbols { exchange } => async_to_json!(client.symbols(exchange)),
+            Command::Quote { symbol } => async_to_json!(client.quote(symbol)),
+            Command::NewsSentiment { symbol } => async_to_json!(client.news_sentiment(symbol)),
+            Command::Peers { symbol } => async_to_json!(client.peers(symbol)),
+            Command::Executives { symbol } => async_to_json!(client.executives(symbol)),
+            Command::News { category } => async_to_json!(client.news(category)),
+            Command::CompanyNews { symbol } => async_to_json!(client.company_news(symbol)),
+            Command::PriceTarget { symbol } => async_to_json!(client.price_target(symbol)),
         }
     }
 }
