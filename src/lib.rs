@@ -32,12 +32,12 @@ impl std::str::FromStr for ExchangeCode {
 ///
 /// Definition: https://finnhub.io/docs/api#stock-symbols
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StockDesc {
     /// Symbol description
     description: String,
 
     /// Display symbol name.
-    #[serde(rename = "displaySymbol")]
     display_symbol: String,
 
     /// Unique symbol used to identify this symbol used in /stock/candle endpoint.
@@ -86,20 +86,18 @@ pub struct Quote {
 ///
 /// Definition: https://finnhub.io/docs/api#news-sentiment
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewsSentiment {
     /// Statistics of company news in the past week.
     pub buzz: Option<Buzz>,
 
     /// News score.
-    #[serde(rename = "companyNewsScore:")]
     pub company_news_score: Option<f32>,
 
     /// Sector average bullish percent.
-    #[serde(rename = "sectorAverageBullishPercent")]
     pub sector_average_bullish_percent: Option<f32>,
 
     /// Sector average score.
-    #[serde(rename = "sectorAverageNewsScore")]
     pub sector_average_news_score: Option<f32>,
 
     /// Sentiment
@@ -110,22 +108,19 @@ pub struct NewsSentiment {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Buzz {
-    #[serde(rename = "articlesInLastWeek")]
     articles_in_last_week: Option<f32>,
 
     buzz: Option<f32>,
 
-    #[serde(rename = "weeklyAverage")]
     weekly_average: Option<f32>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Sentiment {
-    #[serde(rename = "bearishPercent")]
     bearish_percent: Option<f32>,
-
-    #[serde(rename = "bullishPercent")]
     bullish_percent: Option<f32>,
 }
 
@@ -175,7 +170,6 @@ impl NewsCategory {
             NewsCategory::Merger => "Merger",
         }
     }
-
 }
 
 impl std::string::ToString for NewsCategory {

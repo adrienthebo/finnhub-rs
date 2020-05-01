@@ -27,6 +27,7 @@ enum Command {
         exchange: finnhub::ExchangeCode,
     },
 
+    /// Get quote data. Constant polling is not recommended.
     Quote {
         symbol: finnhub::Symbol,
     },
