@@ -207,14 +207,13 @@ impl std::str::FromStr for NewsCategory {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PriceTarget {
+    // "lastUpdated": "2019-06-03 00:00:00",
+    // @see https://serde.rs/custom-date-format.html
+    pub last_updated: String,
 
-  // "lastUpdated": "2019-06-03 00:00:00",
-  // @see https://serde.rs/custom-date-format.html
-  pub last_updated: String,
-
-  symbol: Symbol,
-  target_high: f32,
-  target_low: f32,
-  target_mean: f32,
-  target_median: f32
+    symbol: Symbol,
+    target_high: f32,
+    target_low: f32,
+    target_mean: f32,
+    target_median: f32,
 }
