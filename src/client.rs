@@ -152,6 +152,17 @@ impl<'a> Client<'a> {
         .await
     }
 
+    pub async fn price_recommendation(
+        &self,
+        symbol: &crate::Symbol,
+    ) -> ApiResult<Vec<crate::PriceRecommendation>> {
+        self.get(self.url_for_path(
+            "/stock/recommendation",
+            Some(vec![("symbol", symbol.0.as_ref())]),
+        ))
+        .await
+    }
+
     /// Generate a URL for the given path and optional params.
     ///
     /// # Examples

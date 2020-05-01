@@ -40,6 +40,9 @@ enum Command {
 
     /// Get latest price target consensus.
     PriceTarget { symbol: finnhub::Symbol },
+
+    /// Get latest analyst recommendation trends for a company.
+    PriceRecommendation { symbol: finnhub::Symbol },
 }
 
 macro_rules! async_to_json {
@@ -64,6 +67,9 @@ impl Command {
             Command::News { category } => async_to_json!(client.news(category)),
             Command::CompanyNews { symbol } => async_to_json!(client.company_news(symbol)),
             Command::PriceTarget { symbol } => async_to_json!(client.price_target(symbol)),
+            Command::PriceRecommendation { symbol } => {
+                async_to_json!(client.price_recommendation(symbol))
+            }
         }
     }
 }

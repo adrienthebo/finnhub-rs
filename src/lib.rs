@@ -217,3 +217,18 @@ pub struct PriceTarget {
     target_mean: f32,
     target_median: f32,
 }
+
+/// Get latest analyst recommendation trends for a company.
+///
+/// Definition: https://finnhub.io/docs/api#recommendation-trends
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PriceRecommendation {
+    buy: u32,
+    hold: u32,
+    period: String,
+    sell: u32,
+    strong_buy: u32,
+    strong_sell: u32,
+    symbol: Symbol,
+}
