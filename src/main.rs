@@ -1,7 +1,7 @@
 use clap::{crate_version, Clap};
 
 #[derive(Debug, clap::Clap)]
-#[clap(version = crate_version!(), author = "Adrien Thebo <adrien@lagrange-automation.io", after_help = "The market remain irrational longer than you can remain solvent.")]
+#[clap(version = crate_version!(), author = "Adrien Thebo <adrien@lagrange-automation.io>", after_help = "The market remain irrational longer than you can remain solvent.")]
 struct RootCommand {
     #[clap(subcommand)]
     command: Command,
