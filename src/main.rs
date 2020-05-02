@@ -32,7 +32,7 @@ enum Command {
     /// Get company peers in the same country and GICS sub-industry.
     Peers { symbol: finnhub::Symbol },
 
-    /// Get company peers in the same country and GICS sub-industry.
+    /// Get a list of company's executives and members of the Board.
     Executives { symbol: finnhub::Symbol },
 
     /// List latest company news by symbol. (US companies only.)
